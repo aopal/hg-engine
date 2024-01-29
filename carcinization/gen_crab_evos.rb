@@ -167,9 +167,32 @@ def choose_all_evos
     puts $final_crabs.map {|crab|  bst = crab["base"].map{|k, v| v}.reduce(&:+); [crab["name"]["english"], crab["base"]]}
     puts counts
     File.write("crab_evos.csv", "original,replacement\n" + evos.join("\n"))
+    return evos
+end
+
+def write_replacements(evos)
+    evo_data = File.read("originals/evodata.s")
+    encounter_data = File.read("originals/encounters.s")
+    trainer_data = File.read("originals/trainers.s")
+
+    mappings = evos.map{|m| m.split(",")}
+
+    mappings.each do |mapping|
+        original = "SPECIES_" + mapping[0].upcase
+        replacement = "SPECIES_" + mapping[1].upcase
+
+        evo_data.gsub!(Regexp.new("(evolution.*?) #{original}$"), "\\1 #{replacement}")
+        encounter_data.gsub!(Regexp.new("pokemon #{original}$"), "pokemon #{replacement}")
+        trainer_data.gsub!(Regexp.new("pokemon #{original}$"), "pokemon #{replacement}")
+    end
+
+    File.write("edited/evodata.s", evo_data)
+    File.write("edited/encounters.s", encounter_data)
+    File.write("edited/trainers.s", trainer_data)
 end
 
 $pokedex = {}
 $final_crabs = []
-choose_all_evos()
+evos = choose_all_evos()
+write_replacements(evos)
 
